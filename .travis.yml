@@ -6,14 +6,50 @@ env:
   - DOCKER_COMPOSE_VERSION=1.25.4
 
 before_install:
-  - docker -v && docker-compose -v
-  - sudo rm /usr/local/bin/docker-compose
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
+  - echo "----- install AWS CLI -----"
+  - echo "before_install"
+  - 'curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"'
+  - 'unzip awscli-bundle.zip'
+  - './awscli-bundle/install -b ~/bin/aws'
+  - 'export PATH=~/bin:$PATH'
+  
+  - echo "----- install and setup kubectl -----"
+  - mkdir ${HOME}/.aws
+  - echo "$KUBE_AWS_CREDENTIALS" | base64 --decode > ${HOME}/.aws/credentials
   - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
   - chmod +x ./kubectl
   - sudo mv ./kubectl /usr/local/bin/kubectl
+  - mkdir ${HOME}/.kube
+  - echo "$KUBE_CONFIG" | base64 --decode > ${HOME}/.kube/config
 
-  install:
-    - docker-compose -f udacity-c3-deployment/docker/docker-compose-build.yaml build --parallel 
+
+# Pre-testing installs
+install:
+  - echo "-------- docker-compose --------"
+  - docker-compose -f udacity-c3-deployment/docker/docker-compose-build.yaml build --parallel
+
+# Scripts to be run such as tests
+before_script:
+  - echo "no tests"
+
+script:
+  - echo "-------- script start --------"
+  - docker --version # print the version for logging
+  - echo "-------- script complete --------"
+
+after_success:
+  - echo "----- push builds to dockerhub -----"
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker push padraighow/udacity-restapi-feed:latest
+  - docker push padraighow/udacity-restapi-user:latest
+  - docker push padraighow/udacity-frontend:local
+  - docker push padraighow/reverseproxy
+
+  - echo "----- apply kubernetes deployment files ----- "
+  - kubectl apply -f udacity-c3-deployment/k8s/backend-user-deployment.yaml
+  - kubectl apply -f udacity-c3-deployment/k8s/backend-feed-deployment.yaml
+  - kubectl apply -f udacity-c3-deployment/k8s/frontend-deployment.yaml
+  - kubectl apply -f udacity-c3-deployment/k8s/reverseproxy-deployment.yaml
+
+  - kubectl get pods 
+
