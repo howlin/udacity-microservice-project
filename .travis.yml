@@ -11,8 +11,8 @@ before_install:
   - 'unzip awscli-bundle.zip'
   - './awscli-bundle/install -b ~/bin/aws'
   - 'export PATH=~/bin:$PATH'
-  - mkdir ${PATH}/.aws
-  - echo "$KUBE_AWS_CREDENTIALS" | base64 --decode > ${PATH}/.aws/credentials
+  - mkdir ${HOME}/.aws
+  - echo "$KUBE_AWS_CREDENTIALS" | base64 --decode > ${HOME}/.aws/credentials
 
 
   - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
