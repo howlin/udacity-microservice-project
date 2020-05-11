@@ -6,29 +6,35 @@ env:
   - DOCKER_COMPOSE_VERSION=1.25.4
 
 before_install:
+  - echo "-------- before_install start --------"
   - docker -v && docker-compose -v
   - sudo rm /usr/local/bin/docker-compose
   - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
   - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-  - chmod +x ./kubectl
-  - sudo mv ./kubectl /usr/local/bin/kubectl
+  - echo "-------- before_install complete --------"
 
 # Pre-testing installs
 install:
+  - echo "-------- install start --------"
   - docker-compose -f udacity-c3-deployment/docker/docker-compose-build.yaml build --parallel 
+  - echo "-------- install complete --------"
 
 # Scripts to be run such as tests
 before_script:
   - echo "no tests"
 
 script:
+  - echo "-------- script start --------"
   - docker --version # print the version for logging
+  - echo "-------- script complete --------"
 
 after_success:
+  - echo "-------- after_success start --------"
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push padraighow/udacity-restapi-feed:latest
   - docker push padraighow/udacity-restapi-user:latest
   - docker push padraighow/udacity-frontend:local
   - docker push padraighow/reverseproxy
+  - echo "-------- after_success complete --------"
