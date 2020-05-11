@@ -6,15 +6,16 @@ env:
   - DOCKER_COMPOSE_VERSION=1.25.4
 
 before_install:
+  - echo "----- install AWS CLI -----"
   - echo "before_install"
   - 'curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"'
   - 'unzip awscli-bundle.zip'
   - './awscli-bundle/install -b ~/bin/aws'
   - 'export PATH=~/bin:$PATH'
+  
+  - echo "----- install and setup kubectl -----"
   - mkdir ${HOME}/.aws
   - echo "$KUBE_AWS_CREDENTIALS" | base64 --decode > ${HOME}/.aws/credentials
-
-
   - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
   - chmod +x ./kubectl
   - sudo mv ./kubectl /usr/local/bin/kubectl
@@ -24,9 +25,8 @@ before_install:
 
 # Pre-testing installs
 install:
-  - echo "-------- install start --------"
-  # - docker-compose -f udacity-c3-deployment/docker/docker-compose-build.yaml build --parallel
-  - echo "-------- install complete --------"
+  - echo "-------- docker-compose --------"
+  - docker-compose -f udacity-c3-deployment/docker/docker-compose-build.yaml build --parallel
 
 # Scripts to be run such as tests
 before_script:
@@ -38,13 +38,14 @@ script:
   - echo "-------- script complete --------"
 
 after_success:
-  - echo "-------- after_success start --------"
-  # - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  # - docker push padraighow/udacity-restapi-feed:latest
-  # - docker push padraighow/udacity-restapi-user:latest
-  # - docker push padraighow/udacity-frontend:local
-  # - docker push padraighow/reverseproxy
+  - echo "----- push builds to dockerhub -----"
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker push padraighow/udacity-restapi-feed:latest
+  - docker push padraighow/udacity-restapi-user:latest
+  - docker push padraighow/udacity-frontend:local
+  - docker push padraighow/reverseproxy
 
+  - echo "----- apply kubernetes deployment files ----- "
   - kubectl apply -f udacity-c3-deployment/k8s/backend-user-deployment.yaml
   - kubectl apply -f udacity-c3-deployment/k8s/backend-feed-deployment.yaml
   - kubectl apply -f udacity-c3-deployment/k8s/frontend-deployment.yaml
@@ -52,4 +53,3 @@ after_success:
 
   - kubectl get pods 
 
-  - echo "-------- after_success end --------"
