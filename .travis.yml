@@ -7,12 +7,8 @@ env:
 
 before_install:
   - echo "nothing to do before_install"
-
-# Pre-testing installs
-install:
-  - echo "-------- install start --------"
-  # - docker-compose -f udacity-c3-deployment/docker/docker-compose-build.yaml build --parallel
-  - echo "\n\n\n"
+  - pip install -U pip
+  - pip install awscli
   - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
   - chmod +x ./kubectl
   - sudo mv ./kubectl /usr/local/bin/kubectl
@@ -20,6 +16,11 @@ install:
   - echo "$KUBE_CONFIG" | base64 --decode > ${HOME}/.kube/config
   - mkdir ${HOME}/.aws
   - echo "$KUBE_AWS_CREDENTIALS" | base64 --decode > ${HOME}/.aws/credentials
+
+# Pre-testing installs
+install:
+  - echo "-------- install start --------"
+  # - docker-compose -f udacity-c3-deployment/docker/docker-compose-build.yaml build --parallel
   - echo "-------- install complete --------"
 
 # Scripts to be run such as tests
