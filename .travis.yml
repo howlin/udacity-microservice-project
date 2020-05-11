@@ -20,12 +20,12 @@ before_install:
   - sudo mv ./kubectl /usr/local/bin/kubectl
   - mkdir ${HOME}/.kube
   - echo "$KUBE_CONFIG" | base64 --decode > ${HOME}/.kube/config
-  # - echo "$KUBE_AWS_CREDENTIALS" | base64 --decode > ${HOME}/.aws/credentials
+
 
 # Pre-testing installs
 install:
   - echo "-------- install start --------"
-  # - docker-compose -f udacity-c3-deployment/docker/docker-compose-build.yaml build --parallel
+  - docker-compose -f udacity-c3-deployment/docker/docker-compose-build.yaml build --parallel
   - echo "-------- install complete --------"
 
 # Scripts to be run such as tests
@@ -35,9 +35,6 @@ before_script:
 script:
   - echo "-------- script start --------"
   - docker --version # print the version for logging
-  - echo "\n\n\n"
-  - kubectl get pods
-  - echo "\n\n\n"
   - echo "-------- script complete --------"
 
 after_success:
@@ -47,4 +44,12 @@ after_success:
   # - docker push padraighow/udacity-restapi-user:latest
   # - docker push padraighow/udacity-frontend:local
   # - docker push padraighow/reverseproxy
+
+  - kubectl apply -f udacity-c3-deployment/k8s/backend-user-deployment.yaml
+  - kubectl apply -f udacity-c3-deployment/k8s/backend-feed-deployment.yaml
+  - kubectl apply -f udacity-c3-deployment/k8s/frontend-deployment.yaml
+  - kubectl apply -f udacity-c3-deployment/k8s/reverseproxy-deployment.yaml
+
+  - kubectl get pods 
+
   - echo "-------- after_success end --------"
