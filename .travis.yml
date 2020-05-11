@@ -19,7 +19,7 @@ install:
   - mkdir ${HOME}/.kube
   - echo "$KUBE_CONFIG" | base64 --decode > ${HOME}/.kube/config
   - mkdir ${PATH}/.aws
-  - echo "$KUBE_AWS_CREDENTIALS" | base64 --decode > ${PATH}/.aws/credentials
+  - echo "$KUBE_AWS_CREDENTIALS" | base64 --decode > ${HOME}/.aws/credentials
   - echo "-------- install complete --------"
 
 # Scripts to be run such as tests
